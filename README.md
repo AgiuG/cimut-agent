@@ -39,5 +39,13 @@ O executável será criado na pasta `dist/`.
 
 ## Configuração
 
-Por padrão, o agente conecta em `ws://localhost:8000/api/agent/connect`.
+Por padrão, o agente conecta em `wss://cimut-api.onrender.com/api/agent/connect`.
 Para alterar, modifique a variável `SERVER_URL` no arquivo `local_agent.py`.
+
+### Protocolo WebSocket:
+- **ws://** - Para servidores HTTP (local/desenvolvimento)
+- **wss://** - Para servidores HTTPS (produção/nuvem)
+
+### Exemplos:
+- Local: `ws://localhost:8000/api/agent/connect`
+- Produção: `wss://cimut-api.onrender.com/api/agent/connect`

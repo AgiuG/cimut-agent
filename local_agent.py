@@ -159,7 +159,7 @@ class LocalAgent:
             raise Exception(f"Error modifying file: {str(e)}")
         
 async def main():
-    SERVER_URL = "ws://localhost:8000/api/agent/connect"
+    SERVER_URL = "wss://cimut-api.onrender.com/api/agent/connect"
     AGENT_NAME = "local_dev_agent"
 
     agent = LocalAgent(SERVER_URL, AGENT_NAME)
