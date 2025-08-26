@@ -60,7 +60,7 @@ class LocalAgent:
             if action == 'read_file':
                 return await self.read_file_line(
                     command['file_path'],
-                    command['line_number']
+                    command['line_number'],
                     command_id
                 )
             
@@ -110,7 +110,7 @@ class LocalAgent:
                 'data': {
                     'file_path': file_path,
                     'line_number': line_number,
-                    'line_content': line_content
+                    'line_content': line_content,
                     'total_lines': len(lines)
                 }
             }
@@ -147,7 +147,7 @@ class LocalAgent:
                     'file_path': file_path,
                     'line_number': line_number,
                     'old_content': old_content,
-                    'new_content': new_content
+                    'new_content': new_content,
                     'backup_path': backup_path,
                     'timestamp': datetime.now().isoformat()
                 }
