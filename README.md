@@ -67,6 +67,13 @@ Reads a specific line from a file.
 - **Parameters**: `file_path`, `line_number`
 - **Returns**: File content, line content, total lines
 
+#### `read_full_file`
+Reads the complete content of a file with numbered lines.
+- **Parameters**: `file_path`
+- **Returns**: Complete file content, numbered lines array, total lines, file size, encoding used
+- **Features**: Automatic encoding detection (UTF-8 with Latin-1 fallback)
+- **Lines Format**: Each line includes `line_number` (1-based) and `content` for easy modification
+
 #### `modify_file`
 Modifies a specific line in a file with automatic backup.
 - **Parameters**: `file_path`, `line_number`, `new_content`

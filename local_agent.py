@@ -64,6 +64,12 @@ class LocalAgent:
                     command_id
                 )
             
+            elif action == 'read_full_file':
+                return await self.read_full_file(
+                    command['file_path'],
+                    command_id
+                )
+            
             elif action == 'modify_file':
                 return await self.modify_file_line(
                     command['file_path'],
@@ -119,6 +125,57 @@ class LocalAgent:
             raise Exception(f"File not found: {file_path}")
         except Exception as e:
             raise Exception(f"Error reading file: {str(e)}")
+    
+    async def read_full_file(self, file_path: str, command_id: str) -> dict:
+        try:
+            # Check if file exists and get file stats
+            file_stats = os.stat(file_path)
+            file_size = file_stats.st_size
+            
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+                lines = content.splitlines()
+            
+            return {
+                'command_id': command_id,
+                'success': True,
+                'data': {
+                    'file_path': file_path,
+                    'content': content,
+                    'lines': [{'line_number': i + 1, 'content': line} for i, line in enumerate(lines)],
+                    'total_lines': len(lines),
+                    'file_size_bytes': file_size,
+                    'encoding': 'utf-8',
+                    'timestamp': datetime.now().isoformat()
+                }
+            }
+        
+        except FileNotFoundError:
+            raise Exception(f"File not found: {file_path}")
+        except UnicodeDecodeError:
+            # Try with different encoding if UTF-8 fails
+            try:
+                with open(file_path, 'r', encoding='latin-1') as file:
+                    content = file.read()
+                    lines = content.splitlines()
+                
+                return {
+                    'command_id': command_id,
+                    'success': True,
+                    'data': {
+                        'file_path': file_path,
+                        'content': content,
+                        'lines': [{'line_number': i + 1, 'content': line} for i, line in enumerate(lines)],
+                        'total_lines': len(lines),
+                        'file_size_bytes': file_size,
+                        'encoding': 'latin-1',
+                        'timestamp': datetime.now().isoformat()
+                    }
+                }
+            except Exception as e:
+                raise Exception(f"Error reading file with different encodings: {str(e)}")
+        except Exception as e:
+            raise Exception(f"Error reading full file: {str(e)}")
         
     async def modify_file_line(self, file_path: str, line_number: int, new_content: str, command_id: str) -> dict:
         try:
