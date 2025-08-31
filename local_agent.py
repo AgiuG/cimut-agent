@@ -279,78 +279,44 @@ class LocalAgent:
     
     def _extract_function(self, all_lines: list, function_name: str) -> list:
         """
-        Extract a specific function from file lines.
-        Supports Python, JavaScript, Java, C#, etc.
+        Extract a Python function from file lines.
+        Optimized for Python files only.
         """
         extracted_lines = []
         function_found = False
-        function_start_line = -1
         indent_level = 0
-        brace_count = 0
-        uses_braces = False
-        
-        # Common function patterns for different languages
-        patterns = [
-            # Python: def function_name( or async def function_name(
-            rf'^\s*(async\s+)?def\s+{function_name}\s*\(',
-            # JavaScript/TypeScript: function function_name( or const function_name = 
-            rf'^\s*(async\s+)?(function\s+{function_name}\s*\(|const\s+{function_name}\s*=|let\s+{function_name}\s*=|var\s+{function_name}\s*=)',
-            # Java/C#: public/private/protected ... function_name(
-            rf'^\s*(public|private|protected|static|\w+)*\s+\w*\s*{function_name}\s*\(',
-            # C/C++: return_type function_name(
-            rf'^\s*\w+\s+{function_name}\s*\('
-        ]
         
         for i, line in enumerate(all_lines):
             line_content = line.rstrip('\n')
+            line_stripped = line_content.strip()
             
-            # Check if this line matches any function pattern
+            # Look for Python function definition
             if not function_found:
-                for pattern in patterns:
-                    if re.search(pattern, line_content):
-                        function_found = True
-                        function_start_line = i
-                        # Determine the base indentation level
-                        indent_level = len(line_content) - len(line_content.lstrip())
-                        # Check if this language uses braces
-                        uses_braces = '{' in line_content or '}' in line_content
-                        brace_count = line_content.count('{') - line_content.count('}')
-                        extracted_lines.append({
-                            'content': line,
-                            'line_number': i + 1
-                        })
-                        break
+                if (f'def {function_name}(' in line_content or 
+                    f'async def {function_name}(' in line_content):
+                    function_found = True
+                    indent_level = len(line_content) - len(line_content.lstrip())
+                    extracted_lines.append({
+                        'content': line,
+                        'line_number': i + 1
+                    })
+                    continue
+                    
             else:
-                # We're inside the function, continue extracting
+                # Python function continuation (indentation-based)
+                current_indent = len(line_content) - len(line_content.lstrip()) if line_stripped else indent_level + 1
+                
+                # Function ended when indent returns to original level or less
+                if line_stripped and current_indent <= indent_level:
+                    break
+                    
                 extracted_lines.append({
                     'content': line,
                     'line_number': i + 1
                 })
                 
-                # Check for braces if not detected yet
-                if not uses_braces and ('{' in line_content or '}' in line_content):
-                    uses_braces = True
-                
-                # Update brace count for languages that use braces
-                if uses_braces:
-                    brace_count += line_content.count('{') - line_content.count('}')
-                
-                # Determine if function has ended
-                current_indent = len(line_content) - len(line_content.lstrip()) if line_content.strip() else indent_level + 1
-                
-                if uses_braces:
-                    # Brace-based languages: function ends when braces are balanced
-                    if brace_count <= 0 and i > function_start_line:
-                        break
-                else:
-                    # Python-style: function ends when indentation returns to original level or less
-                    if line_content.strip() and current_indent <= indent_level and i > function_start_line:
-                        # Remove the last line as it's not part of the function
-                        extracted_lines.pop()
-                        break
-                
-                # Safety check: if we've gone too far without finding the end, stop
-                if i - function_start_line > 1000:  # Arbitrary large number
+                # Safety limit
+                if len(extracted_lines) > 500:
                     break
         
         return extracted_lines if function_found else []
