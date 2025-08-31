@@ -283,6 +283,7 @@ class LocalAgent:
         function_start_line = -1
         indent_level = 0
         brace_count = 0
+        uses_braces = False
         
         # Common function patterns for different languages
         patterns = [
@@ -307,6 +308,8 @@ class LocalAgent:
                         function_start_line = i
                         # Determine the base indentation level
                         indent_level = len(line_content) - len(line_content.lstrip())
+                        # Check if this language uses braces
+                        uses_braces = '{' in line_content or '}' in line_content
                         brace_count = line_content.count('{') - line_content.count('}')
                         extracted_lines.append({
                             'content': line,
@@ -320,26 +323,30 @@ class LocalAgent:
                     'line_number': i + 1
                 })
                 
+                # Check for braces if not detected yet
+                if not uses_braces and ('{' in line_content or '}' in line_content):
+                    uses_braces = True
+                
                 # Update brace count for languages that use braces
-                brace_count += line_content.count('{') - line_content.count('}')
+                if uses_braces:
+                    brace_count += line_content.count('{') - line_content.count('}')
                 
                 # Determine if function has ended
                 current_indent = len(line_content) - len(line_content.lstrip()) if line_content.strip() else indent_level + 1
                 
-                # For Python-like languages (indentation-based)
-                if '{' not in ''.join(all_lines[function_start_line:i+1]) and '}' not in ''.join(all_lines[function_start_line:i+1]):
+                if uses_braces:
+                    # Brace-based languages: function ends when braces are balanced
+                    if brace_count <= 0 and i > function_start_line:
+                        break
+                else:
                     # Python-style: function ends when indentation returns to original level or less
                     if line_content.strip() and current_indent <= indent_level and i > function_start_line:
                         # Remove the last line as it's not part of the function
                         extracted_lines.pop()
                         break
-                else:
-                    # Brace-based languages: function ends when braces are balanced
-                    if brace_count <= 0 and i > function_start_line:
-                        break
                 
                 # Safety check: if we've gone too far without finding the end, stop
-                if i - function_start_line > 1000:  # Arbitrary large number
+                if i - function_start_line > 500:  # Reduced from 1000 for faster timeout
                     break
         
         return extracted_lines if function_found else []
