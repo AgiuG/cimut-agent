@@ -68,11 +68,15 @@ Reads a specific line from a file.
 - **Returns**: File content, line content, total lines
 
 #### `read_full_file`
-Reads the complete content of a file with numbered lines.
-- **Parameters**: `file_path`
-- **Returns**: Complete file content, numbered lines array, total lines, file size, encoding used
-- **Features**: Automatic encoding detection (UTF-8 with Latin-1 fallback)
-- **Lines Format**: Each line includes `line_number` (1-based) and `content` for easy modification
+Reads specific functions from a file or entire file content.
+- **Parameters**: `file_path`, `functions` (optional array of function names)
+- **Returns**: Function content, numbered lines array, total lines, file size, encoding used
+- **Features**: 
+  - Multi-language support (Python, JavaScript, Java, C#, C/C++)
+  - Automatic encoding detection (UTF-8 with Latin-1 fallback)
+  - If no functions specified, returns entire file
+- **Lines Format**: Each line includes `content` and `line_number` (for use with modify_file)
+- **Function Detection**: Automatically detects function boundaries using language-specific patterns
 
 #### `modify_file`
 Modifies a specific line in a file with automatic backup.
